@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="navbar_sidebar.css">
+    <style>
+     
+    /*for main content */
+        .ad2 {
+        width: 95vw;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-wrap: wrap;
+        padding: 7px;
+        justify-content: center;
+        border-radius: 10px; 
+    }
+   
+    .ad2 a {
+        background-color: #FF9843;
+        width: 30vw;
+        margin: 5px;
+        text-align: center;
+        padding: 20px;
+        text-decoration: none;
+        color: #F5F5DC; /* Text color */
+        border-radius: 5px; /* Rounded corners for buttons */
+        transition: background-color 0.3s; /* Smooth transition for hover effect */
+    }
+
+    .ad2 a ion-icon {
+        font-size: 4rem;
+        margin-bottom: 10px;
+        color: #F5F5DC; /* Icon color */
+    }
+
+    .ad2 a:hover {
+        color: black;
+        background-color: #FFDD95; /* Darker background on hover */
+    }
+
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-top" id="sidebarTop"></div>
+        <a href="#" onclick="toggleSidebar()" class="close-btn">&times;</a>
+        <a href="index.html" id="homeLink">Home</a>
+        <a href="profiles.html" id="profileBtn">Profile</a>
+        <a href="#" onclick="openLogoutPopup()" id="logoutBtn">Log Out</a>
+    </div>
+    <!-- Main content -->
+    <header>
+        <div>
+            <div class="menu-icon" id="sidebarButton" onclick="toggleSidebar()">&#9776;</div>
+        </div>
+        <nav id="navbar">
+        </nav>
+    </header>
+
+    <!-- Bio section -->
+    <div class="bio-section" id="bioSection" style="display: none;">
+    </div>
+
+    <!-- Logout Popup -->
+    <div class="overlay" id="overlay" onclick="closeLogoutPopup()"></div>
+    <div class="popup" id="logoutPopup">
+        <p>Are you sure you want to logout?</p>
+        <button onclick="logout()">Yes</button>
+        <button onclick="closeLogoutPopup()">No</button>
+    </div>
+    <!-- ... (your existing body content) -->
+
+    <div class="ad2">
+            <a href="search.html"><div><ion-icon name="search-outline"></ion-icon><br>Search</div></a>  
+            <a href="blooddonation.html"><div><ion-icon name="bag-add-outline"></ion-icon><br>Add Blood Donar</div></a>  
+            <a href="donation.html"><div><ion-icon name="add-circle-outline"></ion-icon><br>Add Money Donar</div></a>  
+            <a href="eventsAttend.html"><div><ion-icon name="add-circle-outline"></ion-icon><br>Add Event Attendace</div></a>  
+    </div>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedRowIndex = localStorage.getItem('rowIndex');
+            const sidebarTop = document.getElementById('sidebarTop');
+            const homeLink = document.getElementById('homeLink');
+            const sidebarButton = document.getElementById('sidebarButton');
+            const sidebar = document.getElementById('sidebar');
+
+            const navbar = document.getElementById('navbar');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (savedRowIndex) {
+                displayUserProfile(savedRowIndex, navbar);
+                profileBtn.style.display = 'block';
+            } else {
+                // If rowIndex is not found, hide the entire sidebar
+                sidebar.style.display = 'none';
+                sidebarButton.style.display = 'none'; // Hide the sidebar button
+                navbar.innerHTML = '<ul><li><a href="login.html">Login</a></li></ul>';
+                console.error('Row index not found in localStorage.');
+                profileBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+        });
+
+        async function displayUserProfile(rowIndex, navbar) {
+            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm48hnUwaJhf04Q7c-QOWvVSLCWCghP2lIihDV-kCSTAoKROFRQn6kaeLoRXjQ7bLKW2Rz12oYcRaT/pub?output=csv&gid=0';
+
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split(','));
+
+                if (rowIndex >= 1 && rowIndex < rows.length) {
+                    const userRow = rows[rowIndex];
+                    const photoUrl = userRow[18];
+
+                    navbar.innerHTML = `<ul><li><img src="${photoUrl}" alt="User Photo" onclick="toggleBio()"></li></ul>`;
+
+                    const bioSection = document.getElementById('bioSection');
+                    const userName = userRow[4];
+                    const bloodGroup = userRow[11].trim();
+                    const address = userRow[10].trim();
+                    const balance = userRow[20].trim();
+                    const additionalValue = userRow[27].trim(); // Assuming column AB is at index 27
+
+                    bioSection.innerHTML = `<p>${userName}</p><p>Blood Group: ${bloodGroup}</p><p>Address: ${address}</p><p>Total Donate ${balance}</p>`;
+
+                    // Check the value in column AB and show the corresponding Admin button(s)
+                    switch (additionalValue) {
+                        case '1':
+                            addAdminButton('Admin 1', 'index.html'); // Set the link for Admin 1
+                            break;
+                        case '2':
+                            addAdminButton('Admin 1', 'index.html'); // Set the link for Admin 1
+                            addAdminButton('Admin 2', 'admin2.html'); // Set the link for Admin 2
+                            break;
+                        // Add more cases as needed
+                        default:
+                            break;
+                    }
+                } else {
+                    navbar.innerHTML = '<ul><li><a href="login.html">Login</a></li></ul>';
+                    console.error('Invalid row index:', rowIndex);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function addAdminButton(adminButtonText, adminButtonLink) {
+            const sidebar = document.getElementById('sidebar');
+            const adminButton = document.createElement('a');
+            adminButton.href = adminButtonLink; // Set the href attribute for the link
+            adminButton.textContent = adminButtonText;
+            adminButton.onclick = adminButtonClick;
+
+            // Insert the Admin button after the "Home" link
+            const homeLink = document.getElementById('homeLink');
+            if (homeLink) {
+                sidebar.insertBefore(adminButton, homeLink.nextSibling);
+            }
+        }
+
+        function adminButtonClick() {
+            // Add your admin button click logic here
+            console.log('Admin button clicked');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.width = sidebar.style.width === '40vw' ? '0' : '40vw';
+        }
+
+        function toggleBio() {
+            const bioSection = document.getElementById('bioSection');
+            bioSection.style.display = (bioSection.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function openLogoutPopup() {
+            const overlay = document.getElementById('overlay');
+            const logoutPopup = document.getElementById('logoutPopup');
+            overlay.style.display = 'block';
+            logoutPopup.style.display = 'block';
+        }
+
+        function closeLogoutPopup() {
+            const overlay = document.getElementById('overlay');
+            const logoutPopup = document.getElementById('logoutPopup');
+            overlay.style.display = 'none';
+            logoutPopup.style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('rowIndex');
+            location.reload();
+        }
+    </script>
+
+</body>
+
+</html>
